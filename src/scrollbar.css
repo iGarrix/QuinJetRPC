@@ -1,0 +1,26 @@
+::-webkit-scrollbar-track
+{
+	background-color: #ffffff;  
+	z-index: 500;
+}
+
+::-webkit-scrollbar
+{
+	width: 10px;
+	background-color: #F5F5F5;
+	z-index: 500;
+}
+
+::-webkit-scrollbar-thumb
+{
+	background-color: #46afff;
+	z-index: 500;
+	background-image: -webkit-linear-gradient(90deg,
+	                                          rgba(0, 0, 0, .2) 25%,
+											  transparent 25%,
+											  transparent 50%,
+											  rgba(0, 0, 0, .2) 50%,
+											  rgba(0, 0, 0, .2) 75%,
+											  transparent 75%,
+											  transparent)
+}
