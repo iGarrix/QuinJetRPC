@@ -129,6 +129,16 @@ export interface IAuthResponse {
     user: IProfile,
 }
 
+export interface IRemoveImageServer {
+    email: string,
+    image: string,
+}
+
+export interface IAddImageServer {
+  email: string,
+  file: File | null,
+}
+
 export interface IdentitySetprofileAction {
     type: IdentityActionTypes.SETPROFILE,
     payload: IProfile | null,

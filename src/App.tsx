@@ -2,6 +2,7 @@
 import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 import About from './components/About';
+import Messenger from './components/AccountManage/Messenger';
 import Profile from './components/AccountManage/Profile';
 import Settings from './components/AccountManage/Settings';
 import UpdateEmail from './components/AccountManage/Settings/Email';
@@ -40,6 +41,7 @@ function App() {
             </Route>
             <Route path="profile" element={<ProtectedMiddleware />}>
                 <Route index element={<Profile />} />
+                <Route path="messenger" element={<Messenger />} ></Route>
                 <Route path="settings" element={<Settings />} >
                 <Route index element={<Index />} />
                 <Route path="fio" element={<UpdateFio />} />

@@ -1,5 +1,5 @@
 
-export const httphost = "https://localhost:7151/";
+export const httphost = "http://portfiocom-001-site1.ctempurl.com/";
 export const userImage = "Images/Users/";
 
 export const GetImageUser = httphost + userImage;

@@ -172,11 +172,9 @@ const Header : React.FC = () => {
                                             </Box>
                                         </Box>
                                         <Box sx={{display: "flex", justifyContent: "space-around"}}>                               
-                                            <Button>
-                                                <Tooltip title={`You have a ${2} messages`} placement="top-start" arrow>
-                                                    <Badge badgeContent={2} color="warning">
-                                                        <ChatBubbleOutlinedIcon color="primary" />
-                                                    </Badge>
+                                            <Button onClick={() => {fixnav("profile/messenger"); toggleMenu(false);}}>
+                                                <Tooltip title={`Messenger in development!`} placement="top-start" arrow>
+                                                    <ChatBubbleOutlinedIcon color="primary" />
                                                 </Tooltip>                                
                                             </Button>
                                             <Button onClick={() => {setOpen(true)}}>

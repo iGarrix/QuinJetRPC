@@ -1,7 +1,7 @@
 import { Dispatch } from "react";
 import rq from '../../../basehttp';
 import axios from "axios";
-import { IAuthResponse, IdentityAction, IdentityActionTypes, ILoginForm, ILoginFormServer, IProfile, IRegisterFormServer, IUpdateAvatarServer } from "./types";
+import { IAddImageServer, IAuthResponse, IdentityAction, IdentityActionTypes, ILoginForm, ILoginFormServer, IProfile, IRegisterFormServer, IRemoveImageServer, IUpdateAvatarServer } from "./types";
 import jwt_decode from "jwt-decode";
 import { ISocialLinkServer } from "../../../components/AccountManage/Settings/Sociallink/types";
 import { IPhoneFormServer } from "../../../components/AccountManage/Settings/Phone/types";
@@ -347,6 +347,57 @@ export const verifyEmailUser = (data : string) => {
             if (axios.isAxiosError(error)) {
                 dispatch({type: IdentityActionTypes.SETPROFILE_WAITING, payload: false});
                 dispatch({type: IdentityActionTypes.SETPROFILE_ERROR, payload: error.response?.data});
+                if (error.response?.data) {
+                    return Promise.reject(error.response?.data);
+                }
+            }          
+        }
+    }
+}
+
+export const removeImageUser = (data: IRemoveImageServer) => {
+    return async (dispatch: Dispatch<IdentityAction>) => {
+        try {         
+            dispatch({type: IdentityActionTypes.SETIMAGE_WAITING, payload: true});                          
+            const responseReg = await rq.delete<Array<string>>('api/User/RemoveImage', { data: data});
+            dispatch({type: IdentityActionTypes.SETIMAGE_WAITING, payload: false});
+            dispatch({type: IdentityActionTypes.SETIMAGE, payload: responseReg.data});
+            dispatch({type: IdentityActionTypes.MESSAGE, payload: "Image.Image delete successfully"});
+            return Promise.resolve();
+        }
+        catch(error) {
+            if (axios.isAxiosError(error)) {
+                dispatch({type: IdentityActionTypes.SETIMAGE_WAITING, payload: false});
+                console.log(error.response?.data) 
+                dispatch({type: IdentityActionTypes.SETIMAGE_ERROR, payload: error.response?.data});
+                if (error.response?.data) {
+                    return Promise.reject(error.response?.data);
+                }
+            }          
+        }
+    }
+}
+
+export const addImageUser = (data: IAddImageServer) => {
+    return async (dispatch: Dispatch<IdentityAction>) => {
+        try {         
+            if (data.file !== null) {              
+                dispatch({type: IdentityActionTypes.SETIMAGE_WAITING, payload: true});           
+                const formData = new FormData();
+                formData.append("email", data.email);
+                formData.append("file", data.file);
+                const responseReg = await rq.post<Array<string>>('api/User/AddImage', formData);
+                dispatch({type: IdentityActionTypes.SETIMAGE_WAITING, payload: false});
+                dispatch({type: IdentityActionTypes.SETIMAGE, payload: responseReg.data});
+                dispatch({type: IdentityActionTypes.MESSAGE, payload: "Image.Image added successfully"});
+                return Promise.resolve();
+            }
+        }
+        catch(error) {
+            if (axios.isAxiosError(error)) {
+                dispatch({type: IdentityActionTypes.SETIMAGE_WAITING, payload: false});
+                console.log(error.response?.data) 
+                dispatch({type: IdentityActionTypes.SETIMAGE_ERROR, payload: error.response?.data});
                 if (error.response?.data) {
                     return Promise.reject(error.response?.data);
                 }

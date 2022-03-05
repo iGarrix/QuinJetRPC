@@ -1,8 +1,4 @@
-import { Alert, AlertTitle, Avatar, Backdrop, Box, Button, CircularProgress, Container, Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
+import { Alert, AlertTitle, Avatar, Backdrop, Badge, Box, Button, CircularProgress, Container, Dialog,
     Divider, Grid, IconButton, ImageList, ImageListItem, LinearProgress, 
     Skeleton, 
     Snackbar, Stack, styled, Tooltip, Zoom } from "@mui/material";
@@ -19,9 +15,10 @@ import StarOutlinedIcon from '@mui/icons-material/StarOutlined';
 import SettingsIcon from '@mui/icons-material/Settings';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import moment from "moment";
-import { IUpdateAvatarServer } from "../../../store/reducers/identityReducer/types";
+import { IAddImageServer, IRemoveImageServer, IUpdateAvatarServer } from "../../../store/reducers/identityReducer/types";
 import { useActions } from "../../../hooks/useActions";
 import ImageIcon from '@mui/icons-material/Image';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 
 const Input = styled('input')({
     display: 'none',
@@ -41,12 +38,15 @@ const Profile : React.FC = () => {
     const user = useTypedSelector(state => state.identity.profile);
     const navigate = useNavigate();
 
-    const {updateAvatarUser, getImagesUser} = useActions();
+    const {updateAvatarUser, getImagesUser, removeImageUser, addImageUser} = useActions();
 
     const [open, setOpen] = useState(false);
     const [inform, setInform] = useState(false);
     const [avatarState, setAvatarState] = useState(user !== null ? GetImageUser + user.avatar : "");
     const [avatarFile, setAvatarFile] = useState(null);
+    const [openImage, setOpenImage] = useState(false);
+    const [imageState, setImageState] = useState("https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png");
+    const [imageFile, setImageFile] = useState(null);
     const [imageDialog, setImgDialog] = useState(false);
     const [isNickname, setIsntNicks] = useState(true);
     
@@ -66,6 +66,10 @@ const Profile : React.FC = () => {
     const onChangeAvatar = (event: any) => {
         setAvatarFile(event.target.files[0]);
         setAvatarState(URL.createObjectURL(event.target.files[0]))
+    }
+    const onChangeImage = (event: any) => {
+        setImageFile(event.target.files[0]);
+        setImageState(URL.createObjectURL(event.target.files[0]))
     }
 
     useEffect(() => {
@@ -139,7 +143,42 @@ const Profile : React.FC = () => {
 
             return;
         }
-        return;
+    }
+
+    const RemoveImage = async (image: string) => {
+        if (user !== null) {           
+            var request : IRemoveImageServer = {
+                email: user.email,
+                image: image,
+            }
+            try {
+                await removeImageUser(request);
+                setSnack(true);
+                setOpen(false);
+            } catch (error) {
+                setSnack(true);
+            }
+
+            return;
+        }
+    }
+
+    const AddImage = async () => {
+        if (user !== null && imageFile !== null) {           
+            const request : IAddImageServer = {
+                email: user.email,
+                file: imageFile,
+            }
+            try {
+                await addImageUser(request);
+                setSnack(true);
+                setOpenImage(false);
+            } catch (error) {
+                setSnack(true);
+            }
+
+            return;
+        }
     }
 
     const InformHaven = () => {
@@ -215,6 +254,37 @@ const Profile : React.FC = () => {
                     </Dialog>
 
                     <Dialog
+                        open={openImage}
+                        onClose={() => {setOpen(false); setAvatarState("https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png")}}
+                        aria-labelledby="alert-dialog-title"
+                        aria-describedby="alert-dialog-description">
+                        <Box sx={{display: "flex", alignItems: "center", justifyContent: "space-between", p:2}}>
+                            <h3>Add new image</h3>
+                            <IconButton color="inherit" component="span" onClick={() => {setOpenImage(false); setAvatarState("https://upload.wikimedia.org/wikipedia/commons/9/99/Sample_User_Icon.png")}}>
+                                <CloseOutlinedIcon sx={{fontSize: "1.5rem"}} />
+                            </IconButton>
+                        </Box>
+                        <Box sx={{display: "flex", flexDirection: "column", gap: "1rem", p:4}}>
+                            <Box sx={{display: "flex", flexDirection: "column", alignItems: "center", gap: "2rem", p:3}}>
+                                <Box sx={{display: "flex", justifyContent: "center", width: "100%"}}>
+                                    <img src={imageState} alt="avatar" width={300} height={300} style={{objectFit: "cover"}} />
+                                </Box>
+                                <label htmlFor="icon-button-file" style={{textAlign: "center"}}>
+                                    <Input accessKey="image/*" id="icon-button-file" type="file" onChange={onChangeImage} />
+                                    <IconButton color="primary" aria-label="upload picture" component="span">
+                                        <PhotoCamera sx={{fontSize: "3rem"}} />
+                                    </IconButton>
+                                    <h3>Choose image</h3>                      
+                                </label>
+                            </Box>
+                            <Divider />
+                            <Box sx={{display: "flex", justifyContent: "end", alignItems: "center", gap: "1rem"}}> 
+                                <Button variant="text" color="primary" disabled={imageFile === null ? true : false} onClick={async () => {await AddImage()}}><h3>Add</h3></Button>
+                            </Box>
+                        </Box>
+                    </Dialog>
+
+                    <Dialog
                         open={imageDialog}
                         onClose={() => {setImgDialog(false)}}
                         aria-labelledby="alert-dialog-title"
@@ -225,16 +295,21 @@ const Profile : React.FC = () => {
                                 <CloseOutlinedIcon sx={{fontSize: "1.5rem"}} />
                             </IconButton>
                         </Box>
+                        <Box sx={{display: "flex", alignItems: "center", justifyContent: "center", p:2}}>
+                            <Button onClick={() => {setOpenImage(true)}}><h3>Add new image</h3></Button>
+                        </Box>
                         <Box sx={{display: "flex", flexDirection: "column", gap: "1rem", p:2, overflowY: "auto"}}>
                             {
-                                images === null ?
-                                <Box sx={{p:4}}>
-                                    <h3>Images empty</h3>
-                                </Box>
-                                :
-                                images.map(image => {
+                                images === null ? null :
+                                images.reverse().map(image => {
                                     return (
-                                        <img key={image} src={`${GetImageUser}${image}`} alt="image" loading="lazy" />
+                                        <Box key={image} sx={{display: "flex", flexDirection: "column", p:2}}>
+                                            <img src={`${GetImageUser}${image}`} alt="image" width={450} height={450} style={{objectFit: "cover"}} loading="lazy" />
+                                            <Box sx={{display: "flex", justifyContent: "end", background: "whitesmoke"}}>
+                                                <Button color="error" onClick={async () => {await RemoveImage(image)}}><DeleteOutlineIcon/></Button>
+                                            </Box>
+                                        </Box>
+                                        
                                     )
                                 })
                             }
@@ -288,9 +363,9 @@ const Profile : React.FC = () => {
                                         }
                                         spacing={3}
                                         sx={{display: "flex", justifyContent: "space-between"}}>             
-                                    <Button sx={{display: "flex", flexDirection: "column", alignItems: "center", gap:".5rem", p:2}} onClick={() => {fixnav("messages")}} color="inherit">
+                                    <Button sx={{display: "flex", flexDirection: "column", alignItems: "center", gap:".5rem", p:2}} onClick={() => {fixnav("messenger")}} color="inherit">
                                         <ChatBubbleOutlinedIcon color="inherit" />                            
-                                        <h3>Messages</h3>
+                                        <h3>Messenger</h3>
                                     </Button>
                                     <Button sx={{display: "flex", flexDirection: "column", alignItems: "center", gap:".5rem", p:2}} color="primary">
                                         <h3 style={{margin: 0, display: "flex", gap: "0.3rem"}}><StarOutlinedIcon color="primary" /> {user?.popularity}</h3>                    
